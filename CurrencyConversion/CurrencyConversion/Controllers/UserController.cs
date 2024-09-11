@@ -45,9 +45,42 @@ namespace CurrencyConversion.Controllers
         }
         [HttpPost]
         [Route("GetToken")]
-        public JsonResult GetToken(string email, string senha)
+        public JsonResult GetToken(string email, string password)
         {
-            email = email.;
+            UserDb userDb = new UserDb();
+            Security security = new Security();
+
+            email = security.EncryptTripleDES(email);
+            password = security.EncryptTripleDES(password);
+
+            bool response = userDb.GenerateToken(email, password);
+            if (response)
+            {
+                return new JsonResult(new { success = true, data = "Token gerado com sucesso." });
+            }
+
+            else
+            {
+                return new JsonResult(new { success = false, data = "Erro" });
+            }
+        }
+
+        [HttpPost]
+        [Route("ConvertCurrency")]
+        public JsonResult ConvertCurrency(string token, double real)
+        {
+            UserDb userDb = new UserDb();
+            if (userDb.ValidateToken(token))
+            {
+                Currency convertedcurrencies = userDb.ConvertCurrency(real);
+
+                return new JsonResult(new { success = true, data = convertedcurrencies });
+            }
+
+            else
+            {
+                return new JsonResult(new { success = false, data = "Token inválido!" });
+            }
         }
     }
 }
